@@ -3,5 +3,10 @@
   "version": "0.1.0",
   "license": "MIT",
   "description": "A coloured context-usage bar above the prompt, with free space and a legend.",
-  "types": "./types/index.d.ts"
+  "types": "./types/index.d.ts",
+  "author": {
+    "name": "tom96da"
+  },
+  "homepage": "https://github.com/tom96da/claude-context-band",
+  "repository": "https://github.com/tom96da/claude-context-band"
 }

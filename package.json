@@ -8,7 +8,7 @@
     "types": "claude -p ok --plugin-dir . --model haiku --max-turns 1 > /dev/null",
     "typecheck": "tsc -p .",
     "lint": "oxlint",
-    "validate": "claude plugin validate .",
+    "validate": "claude plugin validate .claude-plugin/plugin.json && claude plugin validate .",
     "test": "claude plugin test .",
     "check": "pnpm lint && pnpm format:check && pnpm typecheck && pnpm validate && pnpm test",
     "format": "oxfmt",

@@ -1,0 +1,14 @@
+{
+  "name": "tom96da",
+  "owner": {
+    "name": "tom96da"
+  },
+  "plugins": [
+    {
+      "name": "context-band",
+      "source": "./",
+      "description": "A coloured context-usage bar above the prompt, with free space and a legend."
+    }
+  ],
+  "description": "Claude Code mods by tom96da."
+}

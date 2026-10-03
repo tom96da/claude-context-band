@@ -1,12 +1,31 @@
 # context-band
 
-A coloured context-usage bar above the Claude Code prompt: one segment per `/context`
-category, `free NN%`, and a legend. Right-aligned; the bar is at most 60 columns and
-shrinks with the terminal.
+A [Claude Code](https://claude.com/claude-code) mod that keeps `/context` in view: a coloured
+bar above the prompt with one segment per category, the free space left, and a legend.
 
 ```
-claude --plugin-dir /workspaces/claude-context-band
+                                  █████▒░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░  free 92%
+■ System prompt 2.3k   ■ System tools 30.0k   ■ Memory files 3.8k   ■ Skills 5.7k   ■ Messages 1.8k
 ```
+
+The band is right-aligned and updates whenever the context fills. The engine's `[-]` button
+at its top right collapses it (ctrl+x ctrl+a brings it back).
+
+## Install
+
+Add the marketplace and install the mod from a terminal:
+
+```
+claude plugin marketplace add tom96da/claude-context-band
+claude plugin install context-band@tom96da
+```
+
+Then run `/reload-plugins` in a running session, or start a new one.
+
+Update with `claude plugin marketplace update tom96da` and
+`claude plugin update context-band`. Remove with `claude plugin uninstall context-band`.
+
+## Usage
 
 | Command                     | Effect                                                       |
 | --------------------------- | ------------------------------------------------------------ |
@@ -15,15 +34,21 @@ claude --plugin-dir /workspaces/claude-context-band
 | `/context-band width <n>`   | set it in columns (10–200, default 60, kept across sessions) |
 | `/context-band width reset` | back to the default                                          |
 
+The bar shrinks below that width when the terminal is narrow.
+
 ## Development
+
+Requires Node.js and [pnpm](https://pnpm.io).
 
 ```
 pnpm install
-pnpm types      # lays .claude-plugin/types (engine API types, not committed)
-pnpm check      # oxlint, tsc, plugin validate, plugin test
+pnpm types      # lays .claude-plugin/types (the engine's API types, not committed)
+pnpm check      # oxlint, oxfmt, tsc, plugin validate, plugin test
 ```
 
 `pnpm types` loads the mod once through `claude -p` (one small haiku call).
+To try changes live, start Claude Code with `claude --plugin-dir .`; saved edits reload
+without a restart. Uninstall the marketplace copy first so the mod is not loaded twice.
 
 ## License
 
