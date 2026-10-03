@@ -1,7 +1,7 @@
 import { test, expect } from "claude-code/testing";
 
 import type { Row } from "../types";
-import { cells, freePercent } from "./bar";
+import { bufferLast, cells, freePercent } from "./bar";
 
 const rows: Row[] = [
   { name: "sys", tokens: 2400, color: "a", kind: "used" },
@@ -20,4 +20,15 @@ test("cells fill the width and keep small rows visible", () => {
 
 test("freePercent is free over total", () => {
   expect(freePercent(rows)).toBe(93);
+});
+
+test("bufferLast moves the buffer to the end and keeps the rest in order", () => {
+  const input: Row[] = [
+    { name: "sys", tokens: 1, color: "a", kind: "used" },
+    { name: "buf", tokens: 2, color: "b", kind: "buffer" },
+    { name: "msg", tokens: 3, color: "c", kind: "used" },
+    { name: "free", tokens: 4, color: "d", kind: "free" },
+  ];
+  expect(bufferLast(input).map((r) => r.name)).toEqual(["sys", "msg", "free", "buf"]);
+  expect(bufferLast(input.filter((r) => r.kind !== "buffer")).length).toBe(3);
 });

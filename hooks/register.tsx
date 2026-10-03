@@ -1,7 +1,7 @@
 import { atom, read, update } from "claude-code";
 import type { EngineInterface, Register } from "claude-code";
 
-import { cells, freePercent, short } from "./bar";
+import { bufferLast, cells, freePercent, short } from "./bar";
 import { DEFAULT_WIDTH, runCommand } from "./command";
 import type { Row } from "../types";
 
@@ -15,9 +15,16 @@ const legendAtom = atom({ plugin: "context-band", key: "legend" } as const, true
 
 async function refresh($: EngineInterface) {
   const { context } = await $.session.usage({ breakdown: "summary" });
-  const rows: Row[] = (context.breakdown?.categories ?? [])
-    .filter((c) => c.kind !== "deferred")
-    .map((c) => ({ name: c.name, tokens: c.tokens, color: c.color, kind: c.kind as Row["kind"] }));
+  const rows: Row[] = bufferLast(
+    (context.breakdown?.categories ?? [])
+      .filter((c) => c.kind !== "deferred")
+      .map((c) => ({
+        name: c.name,
+        tokens: c.tokens,
+        color: c.color,
+        kind: c.kind as Row["kind"],
+      })),
+  );
   await update($, rowsAtom, () => rows);
 }
 

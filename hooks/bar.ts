@@ -36,3 +36,8 @@ export function freePercent(rows: Row[]): number {
 export function short(n: number): string {
   return n >= 1000 ? `${(n / 1000).toFixed(1)}k` : String(n);
 }
+
+/** The compaction buffer last, as /context draws it; the other rows keep their order. */
+export function bufferLast(rows: Row[]): Row[] {
+  return [...rows.filter((r) => r.kind !== "buffer"), ...rows.filter((r) => r.kind === "buffer")];
+}
