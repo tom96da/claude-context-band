@@ -1,7 +1,19 @@
-export type Row = { name: string; tokens: number; color: string; kind: "used" | "free" | "buffer" };
+export type Row = {
+  name: string;
+  tokens: number;
+  color: string;
+  kind: "used" | "free" | "buffer";
+  fresh?: boolean;
+};
 
 declare module "claude-code" {
   interface PluginState {
-    "context-band": { rows: Row[] | null; maxWidth: number; legend: boolean };
+    "context-band": {
+      rows: Row[] | null;
+      maxWidth: number;
+      legend: boolean;
+      particles: boolean;
+      baseline: number | null;
+    };
   }
 }

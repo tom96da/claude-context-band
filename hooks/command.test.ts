@@ -2,17 +2,23 @@ import { test, expect } from "claude-code/testing";
 
 import { runCommand } from "./command";
 
-const now = { width: 100, legend: true };
+const now = { width: 100, legend: true, particles: true };
 
 test("no args shows the settings and usage", () => {
   const out = runCommand("", now);
   expect(out.width).toBeUndefined();
   expect(out.legend).toBeUndefined();
+  expect(out.particles).toBeUndefined();
   expect(out.text).toContain("width: 100 (default)");
+  expect(out.text).toContain("particles: on");
   expect(out.text).toContain("legend: on");
   expect(out.text).toContain("usage: /context-band width");
-  expect(runCommand("  ", { width: 30, legend: false }).text).toContain("width: 30 (default 100)");
-  expect(runCommand("", { width: 30, legend: false }).text).toContain("legend: off");
+  expect(runCommand("  ", { width: 30, legend: false, particles: false }).text).toContain(
+    "width: 30 (default 100)",
+  );
+  expect(runCommand("", { width: 30, legend: false, particles: false }).text).toContain(
+    "legend: off",
+  );
 });
 
 test("width shows, sets, clamps and resets", () => {
@@ -31,6 +37,17 @@ test("legend shows and switches on and off", () => {
   expect(runCommand("legend off", now).legend).toBe(false);
   expect(runCommand("legend on", { ...now, legend: false }).legend).toBe(true);
   expect(runCommand("legend off", now).width).toBeUndefined();
+});
+
+test("particles shows and switches on and off", () => {
+  expect(runCommand("particles", now)).toEqual({ text: "Context bar particles: on" });
+  expect(runCommand("particles off", now)).toEqual({
+    text: "Context bar particles: off",
+    particles: false,
+  });
+  expect(runCommand("particles on", { ...now, particles: false }).particles).toBe(true);
+  expect(runCommand("particles off", now).legend).toBeUndefined();
+  expect(runCommand("legend off", now).particles).toBeUndefined();
 });
 
 test("bad input answers with usage and sets nothing", () => {

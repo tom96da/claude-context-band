@@ -2,32 +2,44 @@ export const DEFAULT_WIDTH = 100;
 const MIN_WIDTH = 10;
 const MAX_WIDTH = 200;
 
-const USAGE = "usage: /context-band width [<n>|reset]\n       /context-band legend [on|off]";
+const USAGE = [
+  "usage: /context-band width [<n>|reset]",
+  "       /context-band legend [on|off]",
+  "       /context-band particles [on|off]",
+].join("\n");
 
-export type Settings = { width: number; legend: boolean };
+export type Settings = { width: number; legend: boolean; particles: boolean };
+export type Change = Partial<Settings>;
+
+const onOff = (on: boolean) => (on ? "on" : "off");
 
 /** What `/context-band <args>` answers and the settings it changes, if any. */
-export function runCommand(
-  args: string,
-  current: Settings,
-): { text: string; width?: number; legend?: boolean } {
+export function runCommand(args: string, current: Settings): { text: string } & Change {
   const [sub, value, ...rest] = args.trim().split(/\s+/).filter(Boolean);
 
   if (sub === undefined) {
     const note = current.width === DEFAULT_WIDTH ? "default" : `default ${DEFAULT_WIDTH}`;
-    const legend = current.legend ? "on" : "off";
     return {
-      text: `context-band\n  width: ${current.width} (${note})\n  legend: ${legend}\n${USAGE}`,
+      text: [
+        "context-band",
+        `  width: ${current.width} (${note})`,
+        `  legend: ${onOff(current.legend)}`,
+        `  particles: ${onOff(current.particles)}`,
+        USAGE,
+      ].join("\n"),
     };
   }
   if (rest.length > 0) return { text: USAGE };
 
-  if (sub === "legend") {
-    if (value === undefined)
-      return { text: `Context bar legend: ${current.legend ? "on" : "off"}` };
+  if (sub === "legend" || sub === "particles") {
+    if (value === undefined) return { text: `Context bar ${sub}: ${onOff(current[sub])}` };
     if (value !== "on" && value !== "off") return { text: USAGE };
 
-    return { text: `Context bar legend: ${value}`, legend: value === "on" };
+    const on = value === "on";
+    return {
+      text: `Context bar ${sub}: ${value}`,
+      ...(sub === "legend" ? { legend: on } : { particles: on }),
+    };
   }
 
   if (sub !== "width") return { text: USAGE };

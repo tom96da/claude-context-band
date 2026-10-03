@@ -27,14 +27,16 @@ Update with `claude plugin marketplace update tom96da` and
 
 ## Usage
 
-| Command                           | Effect                                                        |
-| --------------------------------- | ------------------------------------------------------------- |
-| `/context-band`                   | show the settings and usage                                   |
-| `/context-band width`             | show the maximum bar width                                    |
-| `/context-band width <n>`         | set it in columns (10–200, default 100, kept across sessions) |
-| `/context-band width reset`       | back to the default                                           |
-| `/context-band legend`            | show whether the legend is on                                 |
-| `/context-band legend on` / `off` | show or hide the legend line (kept across sessions)           |
+| Command                              | Effect                                                                                                                                                       |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `/context-band`                      | show the settings and usage                                                                                                                                  |
+| `/context-band width`                | show the maximum bar width                                                                                                                                   |
+| `/context-band width <n>`            | set it in columns (10–200, default 100, kept across sessions)                                                                                                |
+| `/context-band width reset`          | back to the default                                                                                                                                          |
+| `/context-band legend`               | show whether the legend is on                                                                                                                                |
+| `/context-band legend on` / `off`    | show or hide the legend line (kept across sessions)                                                                                                          |
+| `/context-band particles`            | show whether the growth dots are on                                                                                                                          |
+| `/context-band particles on` / `off` | draw what the Messages segment grows by while Claude works as fading dots that turn solid when the turn ends, or always draw it solid (kept across sessions) |
 
 The bar shrinks below that width when the terminal is narrow.
 
