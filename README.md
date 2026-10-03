@@ -3,9 +3,19 @@
 A [Claude Code](https://claude.com/claude-code) mod that keeps `/context` in view: a coloured
 bar above the prompt with one segment per category, the free space left, and a legend.
 
+Idle, with 200k tokens of messages:
+
 ```
-                                  █████▒░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░  free 92%
-■ System prompt 2.3k   ■ System tools 30.0k   ■ Memory files 3.8k   ■ Skills 5.7k   ■ Messages 1.8k
+▌█▌▌████████████████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░▒▒▒  free 73%
+■ System prompt 2.4k   ■ System tools 20.1k   ■ Memory files 4.6k   ■ Skills 5.7k   ■ Messages 200.0k
+```
+
+While Claude works, the last 50k tokens of the messages are dots that twinkle, and they
+turn solid when the turn ends:
+
+```
+▌█▌▌███████████████⣾⢷⠧⣁⠜░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░▒▒▒  free 73%
+■ System prompt 2.4k   ■ System tools 20.1k   ■ Memory files 4.6k   ■ Skills 5.7k   ■ Messages 200.0k
 ```
 
 The band is right-aligned and updates whenever the context fills. The engine's `[-]` button
