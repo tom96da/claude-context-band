@@ -1,13 +1,12 @@
 import { atom, read, update } from "claude-code";
 import type { EngineInterface, Register } from "claude-code";
 
-import { bufferLast, cells, freePercent, short } from "./bar";
+import { bar, bufferLast, freePercent, short } from "./bar";
 import { DEFAULT_WIDTH, runCommand } from "./command";
 import type { Row } from "../types";
 
 // "  free 100%" plus the 4 cells under the engine's "[-]" collapse button
 const LABEL_ROOM = 16;
-const GLYPH = { used: "█", free: "░", buffer: "▒" } as const;
 
 const rowsAtom = atom({ plugin: "context-band", key: "rows" } as const, null);
 const widthAtom = atom({ plugin: "context-band", key: "maxWidth" } as const, DEFAULT_WIDTH);
@@ -72,15 +71,20 @@ export const register: Register = (on) => {
     const maxWidth = await read($, widthAtom);
     const hasLegend = await read($, legendAtom);
     const width = Math.max(1, Math.min(maxWidth, e.props.bodyColumns - LABEL_ROOM));
-    const sizes = cells(rows, width);
     const used = rows.filter((r) => r.kind === "used" && r.tokens > 0);
 
     return (
       <Box flexDirection="column" alignItems="flex-end">
         <Box>
-          {rows.map((r, i) => (
-            <Text color={r.color}>{GLYPH[r.kind].repeat(sizes[i] ?? 0)}</Text>
-          ))}
+          {bar(rows, width).map((r) =>
+            r.bg === undefined ? (
+              <Text color={r.color}>{r.text}</Text>
+            ) : (
+              <Text color={r.color} backgroundColor={r.bg}>
+                {r.text}
+              </Text>
+            ),
+          )}
           <Text dimColor>{`  free ${freePercent(rows)}%    `}</Text>
         </Box>
         {hasLegend && (

@@ -2,16 +2,16 @@ import { test, expect } from "claude-code/testing";
 
 import { runCommand } from "./command";
 
-const now = { width: 60, legend: true };
+const now = { width: 100, legend: true };
 
 test("no args shows the settings and usage", () => {
   const out = runCommand("", now);
   expect(out.width).toBeUndefined();
   expect(out.legend).toBeUndefined();
-  expect(out.text).toContain("width: 60 (default)");
+  expect(out.text).toContain("width: 100 (default)");
   expect(out.text).toContain("legend: on");
   expect(out.text).toContain("usage: /context-band width");
-  expect(runCommand("  ", { width: 30, legend: false }).text).toContain("width: 30 (default 60)");
+  expect(runCommand("  ", { width: 30, legend: false }).text).toContain("width: 30 (default 100)");
   expect(runCommand("", { width: 30, legend: false }).text).toContain("legend: off");
 });
 
@@ -22,7 +22,7 @@ test("width shows, sets, clamps and resets", () => {
   expect(runCommand("width 3", now).width).toBe(10);
   expect(runCommand("width 999", now).width).toBe(200);
   expect(runCommand("width 12.6", now).width).toBe(13);
-  expect(runCommand("width reset", { ...now, width: 30 }).width).toBe(60);
+  expect(runCommand("width reset", { ...now, width: 30 }).width).toBe(100);
 });
 
 test("legend shows and switches on and off", () => {

@@ -1,4 +1,4 @@
-export const DEFAULT_WIDTH = 60;
+export const DEFAULT_WIDTH = 100;
 const MIN_WIDTH = 10;
 const MAX_WIDTH = 200;
 

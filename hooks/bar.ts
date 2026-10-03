@@ -41,3 +41,39 @@ export function short(n: number): string {
 export function bufferLast(rows: Row[]): Row[] {
   return [...rows.filter((r) => r.kind !== "buffer"), ...rows.filter((r) => r.kind === "buffer")];
 }
+
+/** A run of cells drawn alike; `bg` is set on a cell whose two halves belong to different rows. */
+export type Run = { text: string; color: string; bg?: string };
+
+const FULL = { used: "█", free: "░", buffer: "▒" } as const;
+
+/**
+ * The bar as `width` cells with every row sized in half cells (at least one), so a cell holds
+ * at most two rows: a left half over the right half's colour.
+ */
+export function bar(rows: Row[], width: number): Run[] {
+  const owner: number[] = [];
+  cells(rows, width * 2).forEach((n, i) => {
+    for (let k = 0; k < n; k++) owner.push(i);
+  });
+  if (width <= 0 || owner.length < width * 2) return [];
+
+  const runs: Run[] = [];
+  for (let c = 0; c < width; c++) {
+    const left = owner[c * 2] ?? 0;
+    const right = owner[c * 2 + 1] ?? 0;
+    const l = rows[left];
+    const r = rows[right];
+    if (!l || !r) continue;
+
+    const run: Run =
+      left === right
+        ? { text: FULL[l.kind], color: l.color }
+        : { text: "▌", color: l.color, bg: r.color };
+
+    const last = runs[runs.length - 1];
+    if (last && last.color === run.color && last.bg === run.bg) last.text += run.text;
+    else runs.push(run);
+  }
+  return runs;
+}
