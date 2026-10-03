@@ -2,9 +2,9 @@ import { atom, read, update } from "claude-code";
 import type { EngineInterface, Register } from "claude-code";
 
 import { cells, freePercent, short } from "./bar";
+import { DEFAULT_WIDTH, runCommand } from "./command";
 import type { Row } from "../types";
 
-const DEFAULT_WIDTH = 60;
 // "  free 100%" plus the 4 cells under the engine's "[-]" collapse button
 const LABEL_ROOM = 16;
 const GLYPH = { used: "█", free: "░", buffer: "▒" } as const;
@@ -40,17 +40,13 @@ export const register: Register = (on) => {
   });
 
   on("command.run", { command: "context-band" }, async ($, e) => {
-    const arg = e.args.trim();
-    if (arg === "") return { text: `Context bar max width: ${await read($, widthAtom)}` };
+    const { text, width } = runCommand(e.args, await read($, widthAtom));
+    if (width !== undefined) {
+      await $.store.set("maxWidth", width);
+      await update($, widthAtom, () => width);
+    }
 
-    const n = Math.round(Number(arg));
-    if (!Number.isFinite(n)) return { text: `Not a number: ${arg}` };
-
-    const width = Math.min(200, Math.max(10, n));
-    await $.store.set("maxWidth", width);
-    await update($, widthAtom, () => width);
-
-    return { text: `Context bar max width: ${width}` };
+    return { text };
   });
 
   on("ui.render", { component: "AbovePrompt" }, async ($, e, next) => {

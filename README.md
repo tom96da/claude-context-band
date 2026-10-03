@@ -8,7 +8,12 @@ shrinks with the terminal.
 claude --plugin-dir /workspaces/claude-context-band
 ```
 
-`/context-band` shows the max bar width, `/context-band <n>` sets it (10–200, kept across sessions).
+| Command                     | Effect                                                       |
+| --------------------------- | ------------------------------------------------------------ |
+| `/context-band`             | show the settings and usage                                  |
+| `/context-band width`       | show the maximum bar width                                   |
+| `/context-band width <n>`   | set it in columns (10–200, default 60, kept across sessions) |
+| `/context-band width reset` | back to the default                                          |
 
 ## Development
 
