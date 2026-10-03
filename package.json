@@ -1,0 +1,22 @@
+{
+  "name": "context-band",
+  "version": "0.1.0",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "types": "claude -p ok --plugin-dir . --model haiku --max-turns 1 > /dev/null",
+    "typecheck": "tsc -p .",
+    "lint": "oxlint",
+    "validate": "claude plugin validate .",
+    "test": "claude plugin test .",
+    "check": "pnpm lint && pnpm format:check && pnpm typecheck && pnpm validate && pnpm test",
+    "format": "oxfmt",
+    "format:check": "oxfmt --check"
+  },
+  "devDependencies": {
+    "oxfmt": "^0.71.0",
+    "oxlint": "^1.86.0",
+    "typescript": "^7.0.2"
+  }
+}

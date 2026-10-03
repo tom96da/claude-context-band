@@ -1,0 +1,7 @@
+{
+  "name": "context-band",
+  "version": "0.1.0",
+  "license": "MIT",
+  "description": "A coloured context-usage bar above the prompt, with free space and a legend.",
+  "types": "./types/index.d.ts"
+}
