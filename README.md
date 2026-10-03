@@ -27,12 +27,14 @@ Update with `claude plugin marketplace update tom96da` and
 
 ## Usage
 
-| Command                     | Effect                                                       |
-| --------------------------- | ------------------------------------------------------------ |
-| `/context-band`             | show the settings and usage                                  |
-| `/context-band width`       | show the maximum bar width                                   |
-| `/context-band width <n>`   | set it in columns (10–200, default 60, kept across sessions) |
-| `/context-band width reset` | back to the default                                          |
+| Command                           | Effect                                                       |
+| --------------------------------- | ------------------------------------------------------------ |
+| `/context-band`                   | show the settings and usage                                  |
+| `/context-band width`             | show the maximum bar width                                   |
+| `/context-band width <n>`         | set it in columns (10–200, default 60, kept across sessions) |
+| `/context-band width reset`       | back to the default                                          |
+| `/context-band legend`            | show whether the legend is on                                |
+| `/context-band legend on` / `off` | show or hide the legend line (kept across sessions)          |
 
 The bar shrinks below that width when the terminal is narrow.
 

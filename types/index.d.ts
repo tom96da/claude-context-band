@@ -2,6 +2,6 @@ export type Row = { name: string; tokens: number; color: string; kind: "used" | 
 
 declare module "claude-code" {
   interface PluginState {
-    "context-band": { rows: Row[] | null; maxWidth: number };
+    "context-band": { rows: Row[] | null; maxWidth: number; legend: boolean };
   }
 }

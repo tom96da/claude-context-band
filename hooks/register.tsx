@@ -11,6 +11,7 @@ const GLYPH = { used: "█", free: "░", buffer: "▒" } as const;
 
 const rowsAtom = atom({ plugin: "context-band", key: "rows" } as const, null);
 const widthAtom = atom({ plugin: "context-band", key: "maxWidth" } as const, DEFAULT_WIDTH);
+const legendAtom = atom({ plugin: "context-band", key: "legend" } as const, true);
 
 async function refresh($: EngineInterface) {
   const { context } = await $.session.usage({ breakdown: "summary" });
@@ -24,10 +25,12 @@ export const register: Register = (on) => {
   on("session.start", async ($, e, next) => {
     await $.command.register({
       name: "context-band",
-      description: "Show or set the max width of the context bar (columns)",
+      description: "Show or set the context bar options (width, legend)",
     });
     const saved = Number(await $.store.get("maxWidth"));
     await update($, widthAtom, () => (saved > 0 ? saved : DEFAULT_WIDTH));
+    const legend = await $.store.get("legend");
+    await update($, legendAtom, () => legend !== false);
     await refresh($);
 
     return next(e);
@@ -40,10 +43,15 @@ export const register: Register = (on) => {
   });
 
   on("command.run", { command: "context-band" }, async ($, e) => {
-    const { text, width } = runCommand(e.args, await read($, widthAtom));
+    const current = { width: await read($, widthAtom), legend: await read($, legendAtom) };
+    const { text, width, legend } = runCommand(e.args, current);
     if (width !== undefined) {
       await $.store.set("maxWidth", width);
       await update($, widthAtom, () => width);
+    }
+    if (legend !== undefined) {
+      await $.store.set("legend", legend);
+      await update($, legendAtom, () => legend);
     }
 
     return { text };
@@ -55,6 +63,7 @@ export const register: Register = (on) => {
 
     const { Box, Text } = $.ui.resolve(e);
     const maxWidth = await read($, widthAtom);
+    const hasLegend = await read($, legendAtom);
     const width = Math.max(1, Math.min(maxWidth, e.props.bodyColumns - LABEL_ROOM));
     const sizes = cells(rows, width);
     const used = rows.filter((r) => r.kind === "used" && r.tokens > 0);
@@ -67,11 +76,13 @@ export const register: Register = (on) => {
           ))}
           <Text dimColor>{`  free ${freePercent(rows)}%    `}</Text>
         </Box>
-        <Box>
-          {used.map((r) => (
-            <Text color={r.color}>{`■ ${r.name} ${short(r.tokens)}   `}</Text>
-          ))}
-        </Box>
+        {hasLegend && (
+          <Box>
+            {used.map((r) => (
+              <Text color={r.color}>{`■ ${r.name} ${short(r.tokens)}   `}</Text>
+            ))}
+          </Box>
+        )}
       </Box>
     );
   });
