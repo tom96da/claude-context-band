@@ -14,6 +14,12 @@ const legendAtom = atom({ plugin: "context-band", key: "legend" } as const, true
 const particlesAtom = atom({ plugin: "context-band", key: "particles" } as const, true);
 // Messages tokens when the last prompt was submitted; what has grown since is drawn as dots while the turn runs.
 const baselineAtom = atom({ plugin: "context-band", key: "baseline" } as const, null);
+// Counts the twinkle steps of a running turn.
+const frameAtom = atom({ plugin: "context-band", key: "frame" } as const, 0);
+
+const TICK_MS = 250;
+// ponytail: a turn longer than this stops twinkling; the dots stay drawn
+const MAX_TICKS = 4800;
 
 async function refresh($: EngineInterface) {
   const { context } = await $.session.usage({ breakdown: "summary" });
@@ -33,6 +39,12 @@ async function refresh($: EngineInterface) {
 }
 
 export const register: Register = (on) => {
+  let ticker: { cancel: () => void } | null = null;
+  const stopTicking = () => {
+    ticker?.cancel();
+    ticker = null;
+  };
+
   on("session.start", async ($, e, next) => {
     await $.command.register({
       name: "context-band",
@@ -46,6 +58,25 @@ export const register: Register = (on) => {
     await update($, particlesAtom, () => particles !== false);
     const rows = await refresh($);
     await update($, baselineAtom, () => messagesTokens(rows));
+
+    return next(e);
+  });
+
+  on("turn.start", async ($, e, next) => {
+    stopTicking();
+    if (await read($, particlesAtom)) {
+      let ticks = 0;
+      ticker = $.clock.every(TICK_MS, () => {
+        if (++ticks > MAX_TICKS) stopTicking();
+        else void update($, frameAtom, (frame) => frame + 1);
+      });
+    }
+
+    return next(e);
+  });
+
+  on("turn.complete", async ($, e, next) => {
+    stopTicking();
 
     return next(e);
   });
@@ -86,6 +117,7 @@ export const register: Register = (on) => {
     if (particles !== undefined) {
       await $.store.set("particles", particles);
       await update($, particlesAtom, () => particles);
+      if (!particles) stopTicking();
     }
 
     return { text };
@@ -103,12 +135,13 @@ export const register: Register = (on) => {
     const baseline = await read($, baselineAtom);
     // the dots show growth while a turn runs and settle into solid once the prompt is free
     const grows = hasParticles && e.props.isWorking && baseline !== null;
+    const frame = grows ? await read($, frameAtom) : 0;
     const used = rows.filter((r) => r.kind === "used" && r.tokens > 0);
 
     return (
       <Box flexDirection="column" alignItems="flex-end">
         <Box>
-          {bar(rows, width, grows ? (baseline ?? undefined) : undefined).map((r) =>
+          {bar(rows, width, grows ? (baseline ?? undefined) : undefined, frame).map((r) =>
             r.bg === undefined ? (
               <Text color={r.color}>{r.text}</Text>
             ) : (

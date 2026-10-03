@@ -3,7 +3,6 @@ export type Row = {
   tokens: number;
   color: string;
   kind: "used" | "free" | "buffer";
-  fresh?: boolean;
 };
 
 declare module "claude-code" {
@@ -14,6 +13,7 @@ declare module "claude-code" {
       legend: boolean;
       particles: boolean;
       baseline: number | null;
+      frame: number;
     };
   }
 }

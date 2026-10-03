@@ -48,14 +48,25 @@ test("bar is one character per cell", () => {
   }
 });
 
-test("bar draws a shared cell as a half block over the next colour", () => {
+test("bar gives a cell shared with a free row to the solid row", () => {
   expect(bar(two(55, 45), 10)).toEqual([
-    { text: "█████", color: "A" },
-    { text: "▌", color: "A", bg: "B" },
+    { text: "██████", color: "A" },
     { text: "░░░░", color: "B" },
   ]);
   expect(text(two(50, 50), 10)).toBe("█████░░░░░");
-  expect(text(two(1, 7), 1)).toBe("▌");
+  expect(text(two(1, 7), 1)).toBe("█");
+});
+
+test("bar draws a shared cell between solid rows as a half block over the next colour", () => {
+  const solid: Row[] = [
+    { name: "a", tokens: 55, color: "A", kind: "used" },
+    { name: "b", tokens: 45, color: "B", kind: "used" },
+  ];
+  expect(bar(solid, 10)).toEqual([
+    { text: "█████", color: "A" },
+    { text: "▌", color: "A", bg: "B" },
+    { text: "████", color: "B" },
+  ]);
 });
 
 test("bar of empty rows draws nothing", () => {
@@ -119,7 +130,7 @@ test("bar draws the cells gained since the baseline as dots that thin out", () =
   expect(chars.slice(firstDot, lastDot + 1).every((ch) => braille.test(ch))).toBe(true);
 
   const tail = chars.slice(firstDot, lastDot + 1).map((ch) => bits(count(ch)));
-  expect(tail.every((n) => n >= 3)).toBe(true);
+  expect(tail.every((n) => n >= 2)).toBe(true);
   expect(tail.every((n, i) => i === 0 || n <= (tail[i - 1] ?? 8))).toBe(true);
   expect(draw(chat, 100, 200000)).toBe(text);
 });
@@ -151,9 +162,96 @@ test("a cell the baseline reached stays solid as the row grows", () => {
   }
 });
 
+test("twinkling moves the dots and keeps their counts and the solid cells", () => {
+  const a = Array.from(draw(chat, 100, 200000));
+  const b = Array.from(
+    bar(chat, 100, 200000, 3)
+      .map((r) => r.text)
+      .join(""),
+  );
+  expect(b.length).toBe(a.length);
+  expect(b.join("")).not.toBe(a.join(""));
+  a.forEach((ch, i) => {
+    const other = b[i] ?? "";
+    if (braille.test(ch)) expect(bits(count(other))).toBe(bits(count(ch)));
+    else expect(other).toBe(ch);
+  });
+  expect(bar(chat, 100, 200000, 5)).toEqual(bar(chat, 100, 200000, 5));
+});
+
+test("a row keeps its size while another row grows", () => {
+  const small = (messages: number): Row[] => [
+    { name: "sys", tokens: 2400, color: "a", kind: "used" },
+    { name: "tools", tokens: 20100, color: "b", kind: "used" },
+    { name: "mcp", tokens: 717, color: "c", kind: "used" },
+    { name: "mem", tokens: 4600, color: "d", kind: "used" },
+    { name: "Messages", tokens: messages, color: "e", kind: "used" },
+    { name: "free", tokens: 1000000 - 27817 - messages - 33000, color: "f", kind: "free" },
+    { name: "buf", tokens: 33000, color: "g", kind: "buffer" },
+  ];
+  const sizes = (messages: number) => cells(small(messages), 200);
+  const first = sizes(188000);
+  let previous = first[4] ?? 0;
+  for (let messages = 188000; messages <= 260000; messages += 500) {
+    const now = sizes(messages);
+    expect(now.slice(0, 4)).toEqual(first.slice(0, 4));
+    expect(now[4] ?? 0).toBeGreaterThanOrEqual(previous);
+    previous = now[4] ?? 0;
+  }
+});
+
+test("the free and buffer rows meet without a solid half block", () => {
+  for (let w = 20; w <= 160; w++) {
+    for (const buffer of [33000, 12000, 100]) {
+      const rows: Row[] = [
+        { name: "Messages", tokens: 200000, color: "m", kind: "used" },
+        { name: "Free space", tokens: 1000000 - 200000 - buffer, color: "free", kind: "free" },
+        { name: "Autocompact buffer", tokens: buffer, color: "buf", kind: "buffer" },
+      ];
+      const runs = bar(rows, w);
+      expect(runs.some((r) => r.color === "free" && r.bg === "buf")).toBe(false);
+      expect(runs.some((r) => r.color === "buf")).toBe(true);
+      expect(Array.from(runs.map((r) => r.text).join("")).length).toBe(w);
+    }
+  }
+});
+
+test("a half cell of growth at the end is a cell of at least three dots", () => {
+  let seen = false;
+  for (let growth = 1000; growth < 9000; growth += 250) {
+    const rows = chat.map((r) =>
+      r.name === "Messages"
+        ? { ...r, tokens: 200000 + growth }
+        : r.kind === "free"
+          ? { ...r, tokens: r.tokens + 100000 - growth }
+          : r,
+    );
+    const chars = Array.from(draw(rows, 100, 200000));
+    const dotted = chars.filter((ch) => braille.test(ch));
+    if (dotted.length > 0) {
+      seen = true;
+      expect(dotted.length).toBe(1);
+      expect(bits(count(dotted[0] ?? ""))).toBeGreaterThanOrEqual(3);
+      expect(chars[chars.findIndex((ch) => braille.test(ch)) + 1]).toBe("░");
+    }
+    expect(bar(rows, 100, 200000).some((r) => r.bg !== undefined && r.color === "c2")).toBe(false);
+  }
+  expect(seen).toBe(true);
+});
+
+test("the end of the Messages row leaves no empty half cell beside the free row", () => {
+  for (let w = 20; w <= 160; w++) {
+    const runs = bar(chat, w);
+    expect(runs.some((r) => r.color === "c2" && r.bg !== undefined)).toBe(false);
+    expect(runs.some((r) => r.text.includes("▌") && r.bg === undefined)).toBe(false);
+  }
+});
+
 test("dots counts follow the density", () => {
   expect(bits(count(dots(3, 1)))).toBe(8);
   expect(bits(count(dots(3, 0.5)))).toBe(4);
   expect(bits(count(dots(3, 0)))).toBe(1);
   for (let c = 0; c < 20; c++) expect(bits(count(dots(c, 0.4)))).toBe(3);
+  for (let seed = 0; seed < 5; seed++) expect(bits(count(dots(7, 0.5, seed)))).toBe(4);
+  expect(dots(7, 0.5, 1)).not.toBe(dots(7, 0.5, 0));
 });
